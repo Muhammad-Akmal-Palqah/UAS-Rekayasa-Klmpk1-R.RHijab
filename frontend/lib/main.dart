@@ -315,23 +315,30 @@ class AccountPage extends StatelessWidget {
                 child: const Icon(Icons.person, size: 30, color: Colors.white),
               ),
               const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Safira Aulia',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Premium Member',
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                    Text(
+                      'Safira Aulia',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Premium Member',
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                    ),
+                  ],
+                ),
               ),
-              const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xffffcccc),
                   borderRadius: BorderRadius.circular(20),
@@ -869,22 +876,40 @@ class _ShopGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = productCatalog;
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 0.72,
-      physics: const NeverScrollableScrollPhysics(),
-      children: items
-          .map(
-            (product) => _ProductTile(
-              product: product,
-              isFavorite: favoriteIds.contains(product.id),
-              onToggleFavorite: onToggleFavorite,
-            ),
-          )
-          .toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const horizontalSpacing = 12.0;
+        const minCardWidth = 220.0;
+        const maxCardWidth = 360.0;
+        final availableWidth = constraints.maxWidth;
+        final crossAxisCount =
+            ((availableWidth + horizontalSpacing) ~/
+                    (minCardWidth + horizontalSpacing))
+                .toInt();
+        final effectiveCrossAxisCount = crossAxisCount < 1 ? 1 : crossAxisCount;
+        final itemWidth =
+            (availableWidth -
+                horizontalSpacing * (effectiveCrossAxisCount - 1)) /
+            effectiveCrossAxisCount;
+        final cardWidth = itemWidth.clamp(180.0, maxCardWidth);
+
+        return Wrap(
+          spacing: horizontalSpacing,
+          runSpacing: 12,
+          children: items
+              .map(
+                (product) => SizedBox(
+                  width: cardWidth,
+                  child: _ProductTile(
+                    product: product,
+                    isFavorite: favoriteIds.contains(product.id),
+                    onToggleFavorite: onToggleFavorite,
+                  ),
+                ),
+              )
+              .toList(),
+        );
+      },
     );
   }
 }
@@ -930,7 +955,6 @@ class _ShopFooterCTA extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       decoration: BoxDecoration(
         color: const Color(0xffccccff),
@@ -982,7 +1006,6 @@ class _ProductTile extends StatelessWidget {
         );
       },
       child: Container(
-        width: 180,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: product.color,
@@ -1235,27 +1258,30 @@ class ProductDetailsPage extends StatelessWidget {
                   right: 24,
                   top: 24,
                   child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: () => onToggleFavorite(product.id),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                      child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        key: ValueKey<bool>(isFavorite),
-                        color: isFavorite ? Colors.redAccent : Colors.black87,
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: () => onToggleFavorite(product.id),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        shape: BoxShape.circle,
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          );
+                        },
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          key: ValueKey<bool>(isFavorite),
+                          color: isFavorite ? Colors.redAccent : Colors.black87,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 ),
                 Positioned(
                   left: 0,
@@ -1293,11 +1319,14 @@ class ProductDetailsPage extends StatelessWidget {
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      Text(
-                        product.price,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          product.price,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
