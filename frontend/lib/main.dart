@@ -1,4 +1,6 @@
 ﻿import 'package:flutter/material.dart';
+import 'auth_service.dart';
+import 'login_page.dart';
 import 'models/product.dart';
 
 void main() {
@@ -61,6 +63,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  UserAuth? _currentUser;
   int _selectedIndex = 0;
   final Set<String> _favoriteIds = productCatalog
       .where((product) => product.isFavorite)
@@ -87,8 +90,39 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _signIn({
+    required String email,
+    required String username,
+    required String password,
+    required UserRole role,
+  }) async {
+    final user = await AuthService.signIn(
+      email: email,
+      username: username,
+      password: password,
+      role: role,
+    );
+
+    setState(() {
+      _currentUser = user;
+      _selectedIndex = 0;
+    });
+  }
+
+  void _signOut() {
+    setState(() {
+      _currentUser = null;
+      _selectedIndex = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_currentUser == null) {
+      return LoginPage(onSignIn: _signIn);
+    }
+
+    final currentUser = _currentUser!;
     final pages = <Widget>[
       LandingPage(favoriteIds: _favoriteIds, onToggleFavorite: _toggleFavorite),
       ShopPage(favoriteIds: _favoriteIds, onToggleFavorite: _toggleFavorite),
@@ -96,7 +130,13 @@ class _HomePageState extends State<HomePage> {
         favoriteProducts: _favoriteProducts,
         onToggleFavorite: _toggleFavorite,
       ),
-      const AccountPage(),
+      AccountPage(
+        isSignedIn: true,
+        accountName: currentUser.username,
+        accountEmail: currentUser.email,
+        accountRole: getRoleLabel(currentUser.role),
+        onSignOut: _signOut,
+      ),
     ];
 
     return Scaffold(
@@ -293,10 +333,27 @@ class FavoritesPage extends StatelessWidget {
 }
 
 class AccountPage extends StatelessWidget {
-  const AccountPage({super.key});
+  final bool isSignedIn;
+  final String accountName;
+  final String accountEmail;
+  final String accountRole;
+  final VoidCallback onSignOut;
+
+  const AccountPage({
+    super.key,
+    required this.isSignedIn,
+    required this.accountName,
+    required this.accountEmail,
+    required this.accountRole,
+    required this.onSignOut,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final displayName = accountName.isNotEmpty ? accountName : 'Guest User';
+    final displayEmail = accountEmail.isNotEmpty ? accountEmail : 'No email available';
+    final displayRole = isSignedIn ? accountRole : 'Guest';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
@@ -316,18 +373,18 @@ class AccountPage extends StatelessWidget {
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text(
-                      'Safira Aulia',
-                      style: TextStyle(
+                      displayName,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'Premium Member',
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                      displayRole,
+                      style: const TextStyle(fontSize: 14, color: Colors.black54),
                     ),
                   ],
                 ),
@@ -369,13 +426,13 @@ class AccountPage extends StatelessWidget {
             child: Column(
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.mail_outline, color: Colors.black87),
-                    SizedBox(width: 12),
+                  children: [
+                    const Icon(Icons.mail_outline, color: Colors.black87),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'safira@example.com',
-                        style: TextStyle(
+                        displayEmail,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -385,13 +442,13 @@ class AccountPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  children: const [
-                    Icon(Icons.location_on_outlined, color: Colors.black87),
-                    SizedBox(width: 12),
+                  children: [
+                    const Icon(Icons.badge_outlined, color: Colors.black87),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Bandung, Indonesia',
-                        style: TextStyle(
+                        displayRole,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -441,7 +498,20 @@ class AccountPage extends StatelessWidget {
             icon: Icons.settings_outlined,
             label: 'Preferences',
           ),
-          const _AccountMenuItem(icon: Icons.logout, label: 'Sign Out'),
+          const SizedBox(height: 18),
+          ElevatedButton.icon(
+            onPressed: onSignOut,
+            icon: const Icon(Icons.logout),
+            label: const Text('Sign Out'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xffffcccc),
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -493,7 +563,7 @@ class _AccountMenuItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withAlpha(8),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1062,7 +1132,7 @@ class _SearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(10),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -1148,7 +1218,7 @@ class _ProductTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withAlpha(15),
               blurRadius: 12,
               offset: const Offset(0, 8),
             ),
@@ -1167,7 +1237,7 @@ class _ProductTile extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withAlpha(230),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -1201,6 +1271,16 @@ class _ProductTile extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Center(
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(102),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Center(
+                  child: Icon(Icons.image, size: 52, color: Colors.white70),
+                ),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final size = (constraints.maxWidth * 0.45).clamp(90.0, 120.0);
@@ -1265,7 +1345,7 @@ class _FavoriteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -1423,7 +1503,7 @@ class ProductDetailsPage extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withAlpha(230),
                         shape: BoxShape.circle,
                       ),
                       child: AnimatedSwitcher(
@@ -1448,6 +1528,20 @@ class ProductDetailsPage extends StatelessWidget {
                   right: 0,
                   top: 80,
                   child: Center(
+                    child: Container(
+                      width: 220,
+                      height: 220,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(89),
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          Icons.image,
+                          size: 120,
+                          color: Colors.white70,
+                        ),
+                      ),
                     child: LayoutBuilder(
                       builder: (context, constraints) {
                         final imageSize = (constraints.maxWidth * 0.65).clamp(
@@ -1559,7 +1653,7 @@ class ProductDetailsPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withAlpha(13),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
@@ -1731,7 +1825,7 @@ class _FooterPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -1771,3 +1865,4 @@ class _FooterPanel extends StatelessWidget {
     );
   }
 }
+
