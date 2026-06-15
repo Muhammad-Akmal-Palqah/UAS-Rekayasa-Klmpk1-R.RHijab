@@ -1,4 +1,6 @@
 ﻿import 'package:flutter/material.dart';
+import 'auth_service.dart';
+import 'login_page.dart';
 import 'models/product.dart';
 
 void main() {
@@ -61,6 +63,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  UserAuth? _currentUser;
   int _selectedIndex = 0;
   final Set<String> _favoriteIds = productCatalog
       .where((product) => product.isFavorite)
@@ -87,8 +90,39 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _signIn({
+    required String email,
+    required String username,
+    required String password,
+    required UserRole role,
+  }) async {
+    final user = await AuthService.signIn(
+      email: email,
+      username: username,
+      password: password,
+      role: role,
+    );
+
+    setState(() {
+      _currentUser = user;
+      _selectedIndex = 0;
+    });
+  }
+
+  void _signOut() {
+    setState(() {
+      _currentUser = null;
+      _selectedIndex = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_currentUser == null) {
+      return LoginPage(onSignIn: _signIn);
+    }
+
+    final currentUser = _currentUser!;
     final pages = <Widget>[
       LandingPage(favoriteIds: _favoriteIds, onToggleFavorite: _toggleFavorite),
       ShopPage(favoriteIds: _favoriteIds, onToggleFavorite: _toggleFavorite),
@@ -96,7 +130,13 @@ class _HomePageState extends State<HomePage> {
         favoriteProducts: _favoriteProducts,
         onToggleFavorite: _toggleFavorite,
       ),
-      const AccountPage(),
+      AccountPage(
+        isSignedIn: true,
+        accountName: currentUser.username,
+        accountEmail: currentUser.email,
+        accountRole: getRoleLabel(currentUser.role),
+        onSignOut: _signOut,
+      ),
     ];
 
     return Scaffold(
@@ -295,10 +335,27 @@ class FavoritesPage extends StatelessWidget {
 }
 
 class AccountPage extends StatelessWidget {
-  const AccountPage({super.key});
+  final bool isSignedIn;
+  final String accountName;
+  final String accountEmail;
+  final String accountRole;
+  final VoidCallback onSignOut;
+
+  const AccountPage({
+    super.key,
+    required this.isSignedIn,
+    required this.accountName,
+    required this.accountEmail,
+    required this.accountRole,
+    required this.onSignOut,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final displayName = accountName.isNotEmpty ? accountName : 'Guest User';
+    final displayEmail = accountEmail.isNotEmpty ? accountEmail : 'No email available';
+    final displayRole = isSignedIn ? accountRole : 'Guest';
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Column(
@@ -315,23 +372,30 @@ class AccountPage extends StatelessWidget {
                 child: const Icon(Icons.person, size: 30, color: Colors.white),
               ),
               const SizedBox(width: 14),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Safira Aulia',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Premium Member',
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
-                  ),
-                ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      displayRole,
+                      style: const TextStyle(fontSize: 14, color: Colors.black54),
+                    ),
+                  ],
+                ),
               ),
-              const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xffffcccc),
                   borderRadius: BorderRadius.circular(20),
@@ -364,13 +428,13 @@ class AccountPage extends StatelessWidget {
             child: Column(
               children: [
                 Row(
-                  children: const [
-                    Icon(Icons.mail_outline, color: Colors.black87),
-                    SizedBox(width: 12),
+                  children: [
+                    const Icon(Icons.mail_outline, color: Colors.black87),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'safira@example.com',
-                        style: TextStyle(
+                        displayEmail,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -380,13 +444,13 @@ class AccountPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Row(
-                  children: const [
-                    Icon(Icons.location_on_outlined, color: Colors.black87),
-                    SizedBox(width: 12),
+                  children: [
+                    const Icon(Icons.badge_outlined, color: Colors.black87),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Bandung, Indonesia',
-                        style: TextStyle(
+                        displayRole,
+                        style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
@@ -425,7 +489,20 @@ class AccountPage extends StatelessWidget {
             icon: Icons.settings_outlined,
             label: 'Preferences',
           ),
-          const _AccountMenuItem(icon: Icons.logout, label: 'Sign Out'),
+          const SizedBox(height: 18),
+          ElevatedButton.icon(
+            onPressed: onSignOut,
+            icon: const Icon(Icons.logout),
+            label: const Text('Sign Out'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xffffcccc),
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(54),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -477,7 +554,7 @@ class _AccountMenuItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withAlpha(8),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -869,22 +946,40 @@ class _ShopGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = productCatalog;
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 0.72,
-      physics: const NeverScrollableScrollPhysics(),
-      children: items
-          .map(
-            (product) => _ProductTile(
-              product: product,
-              isFavorite: favoriteIds.contains(product.id),
-              onToggleFavorite: onToggleFavorite,
-            ),
-          )
-          .toList(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const horizontalSpacing = 12.0;
+        const minCardWidth = 220.0;
+        const maxCardWidth = 360.0;
+        final availableWidth = constraints.maxWidth;
+        final crossAxisCount =
+            ((availableWidth + horizontalSpacing) ~/
+                    (minCardWidth + horizontalSpacing))
+                .toInt();
+        final effectiveCrossAxisCount = crossAxisCount < 1 ? 1 : crossAxisCount;
+        final itemWidth =
+            (availableWidth -
+                horizontalSpacing * (effectiveCrossAxisCount - 1)) /
+            effectiveCrossAxisCount;
+        final cardWidth = itemWidth.clamp(180.0, maxCardWidth);
+
+        return Wrap(
+          spacing: horizontalSpacing,
+          runSpacing: 12,
+          children: items
+              .map(
+                (product) => SizedBox(
+                  width: cardWidth,
+                  child: _ProductTile(
+                    product: product,
+                    isFavorite: favoriteIds.contains(product.id),
+                    onToggleFavorite: onToggleFavorite,
+                  ),
+                ),
+              )
+              .toList(),
+        );
+      },
     );
   }
 }
@@ -901,7 +996,7 @@ class _SearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(10),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),
@@ -930,7 +1025,6 @@ class _ShopFooterCTA extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       decoration: BoxDecoration(
         color: const Color(0xffccccff),
@@ -982,14 +1076,13 @@ class _ProductTile extends StatelessWidget {
         );
       },
       child: Container(
-        width: 180,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: product.color,
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withAlpha(15),
               blurRadius: 12,
               offset: const Offset(0, 8),
             ),
@@ -1008,7 +1101,7 @@ class _ProductTile extends StatelessWidget {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withAlpha(230),
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -1046,7 +1139,7 @@ class _ProductTile extends StatelessWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.4),
+                  color: Colors.white.withAlpha(102),
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: const Center(
@@ -1096,7 +1189,7 @@ class _FavoriteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -1235,27 +1328,30 @@ class ProductDetailsPage extends StatelessWidget {
                   right: 24,
                   top: 24,
                   child: InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: () => onToggleFavorite(product.id),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                      child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        key: ValueKey<bool>(isFavorite),
-                        color: isFavorite ? Colors.redAccent : Colors.black87,
+                    borderRadius: BorderRadius.circular(24),
+                    onTap: () => onToggleFavorite(product.id),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(230),
+                        shape: BoxShape.circle,
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          );
+                        },
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          key: ValueKey<bool>(isFavorite),
+                          color: isFavorite ? Colors.redAccent : Colors.black87,
+                        ),
                       ),
                     ),
                   ),
-                ),
                 ),
                 Positioned(
                   left: 0,
@@ -1266,7 +1362,7 @@ class ProductDetailsPage extends StatelessWidget {
                       width: 220,
                       height: 220,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.35),
+                        color: Colors.white.withAlpha(89),
                         borderRadius: BorderRadius.circular(32),
                       ),
                       child: const Center(
@@ -1293,11 +1389,14 @@ class ProductDetailsPage extends StatelessWidget {
                   const SizedBox(height: 10),
                   Row(
                     children: [
-                      Text(
-                        product.price,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          product.price,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1362,7 +1461,7 @@ class ProductDetailsPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(18),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: Colors.black.withAlpha(13),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
@@ -1532,7 +1631,7 @@ class _FooterPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withAlpha(13),
             blurRadius: 18,
             offset: const Offset(0, 8),
           ),
@@ -1591,3 +1690,4 @@ class _FooterPanel extends StatelessWidget {
     );
   }
 }
+
