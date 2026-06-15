@@ -174,8 +174,6 @@ class LandingPage extends StatelessWidget {
             onToggleFavorite: onToggleFavorite,
           ),
           const SizedBox(height: 24),
-          const _ContactPanel(),
-          const SizedBox(height: 24),
           const _FooterPanel(),
           const SizedBox(height: 24),
         ],
@@ -407,9 +405,18 @@ class AccountPage extends StatelessWidget {
                   runSpacing: 12,
                   alignment: WrapAlignment.spaceBetween,
                   children: const [
-                    SizedBox(width: 100, child: _AccountStat(label: 'Orders', value: '14')),
-                    SizedBox(width: 100, child: _AccountStat(label: 'Wishlist', value: '3')),
-                    SizedBox(width: 100, child: _AccountStat(label: 'Rewards', value: '45')),
+                    SizedBox(
+                      width: 100,
+                      child: _AccountStat(label: 'Orders', value: '14'),
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: _AccountStat(label: 'Wishlist', value: '3'),
+                    ),
+                    SizedBox(
+                      width: 100,
+                      child: _AccountStat(label: 'Rewards', value: '45'),
+                    ),
                   ],
                 ),
               ],
@@ -855,12 +862,16 @@ class _BestSellerCarousel extends StatelessWidget {
         final availableWidth = constraints.maxWidth;
         final isWide = availableWidth >= 980;
         final itemWidth = isWide
-            ? ((availableWidth - horizontalSpacing * 2) / 3)
-                .clamp(minCardWidth, maxCardWidth)
+            ? ((availableWidth - horizontalSpacing * 2) / 3).clamp(
+                minCardWidth,
+                maxCardWidth,
+              )
             : availableWidth > 720
-                ? ((availableWidth - horizontalSpacing) / 2)
-                    .clamp(minCardWidth, maxCardWidth)
-                : availableWidth * 0.85;
+            ? ((availableWidth - horizontalSpacing) / 2).clamp(
+                minCardWidth,
+                maxCardWidth,
+              )
+            : availableWidth * 0.85;
         final itemHeight = itemWidth * 1.05 + 70;
 
         if (isWide) {
@@ -868,21 +879,27 @@ class _BestSellerCarousel extends StatelessWidget {
             height: itemHeight,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: items
-                  .map(
-                    (product) => SizedBox(
-                      width: itemWidth,
-                      height: itemHeight,
-                      child: _ProductTile(
-                        product: product,
-                        isFavorite: favoriteIds.contains(product.id),
-                        onToggleFavorite: onToggleFavorite,
-                      ),
-                    ),
-                  )
-                  .expand((widget) => [widget, const SizedBox(width: horizontalSpacing)])
-                  .toList()
-                ..removeLast(),
+              children:
+                  items
+                      .map(
+                        (product) => SizedBox(
+                          width: itemWidth,
+                          height: itemHeight,
+                          child: _ProductTile(
+                            product: product,
+                            isFavorite: favoriteIds.contains(product.id),
+                            onToggleFavorite: onToggleFavorite,
+                          ),
+                        ),
+                      )
+                      .expand(
+                        (widget) => [
+                          widget,
+                          const SizedBox(width: horizontalSpacing),
+                        ],
+                      )
+                      .toList()
+                    ..removeLast(),
             ),
           );
         }
@@ -904,7 +921,8 @@ class _BestSellerCarousel extends StatelessWidget {
                 ),
               );
             },
-            separatorBuilder: (_, __) => const SizedBox(width: horizontalSpacing),
+            separatorBuilder: (_, __) =>
+                const SizedBox(width: horizontalSpacing),
             itemCount: items.length,
           ),
         );
@@ -1269,83 +1287,89 @@ class _FavoriteCard extends StatelessWidget {
             );
           },
           child: LayoutBuilder(
-          builder: (context, constraints) {
-            final imageSize = (constraints.maxWidth * 0.28).clamp(84.0, 110.0);
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: imageSize,
-                  height: imageSize,
-                  margin: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: product.color,
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.image, size: 56, color: Colors.white70),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          product.title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          product.price,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: List.generate(
-                            product.rating,
-                            (index) => const Icon(
-                              Icons.star,
-                              size: 16,
-                              color: Colors.amber,
-                            ),
-                          ),
-                        ),
-                      ],
+            builder: (context, constraints) {
+              final imageSize = (constraints.maxWidth * 0.28).clamp(
+                84.0,
+                110.0,
+              );
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: imageSize,
+                    height: imageSize,
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: product.color,
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.image, size: 56, color: Colors.white70),
                     ),
                   ),
-                ),
-                InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => onToggleFavorite(product.id),
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      transitionBuilder: (child, animation) {
-                        return ScaleTransition(scale: animation, child: child);
-                      },
-                      child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        key: ValueKey<bool>(isFavorite),
-                        color: isFavorite ? Colors.redAccent : Colors.black38,
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            product.price,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: List.generate(
+                              product.rating,
+                              (index) => const Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
-        ),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => onToggleFavorite(product.id),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        transitionBuilder: (child, animation) {
+                          return ScaleTransition(
+                            scale: animation,
+                            child: child,
+                          );
+                        },
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          key: ValueKey<bool>(isFavorite),
+                          color: isFavorite ? Colors.redAccent : Colors.black38,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -1426,7 +1450,10 @@ class ProductDetailsPage extends StatelessWidget {
                   child: Center(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        final imageSize = (constraints.maxWidth * 0.65).clamp(160.0, 220.0);
+                        final imageSize = (constraints.maxWidth * 0.65).clamp(
+                          160.0,
+                          220.0,
+                        );
                         return Container(
                           width: imageSize,
                           height: imageSize,
@@ -1542,6 +1569,8 @@ class ProductDetailsPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
+                  const _ContactPanel(),
                 ],
               ),
             ),
@@ -1731,25 +1760,6 @@ class _FooterPanel extends StatelessWidget {
               SizedBox(width: 14),
               Icon(Icons.music_note, size: 24),
             ],
-          ),
-          const SizedBox(height: 18),
-          const Text(
-            'Stay in the loop',
-            style: TextStyle(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xfffff1f1),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const TextField(
-              decoration: InputDecoration(
-                hintText: 'Your email address',
-                border: InputBorder.none,
-              ),
-            ),
           ),
           const SizedBox(height: 16),
           const Text(
