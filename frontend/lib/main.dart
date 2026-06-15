@@ -149,26 +149,26 @@ class LandingPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _AppHeader(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
           const _HeroCard(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           const _FeatureHighlights(),
-          const SizedBox(height: 24),
+          const SizedBox(height: 22),
           const _SectionHeader(
             title: 'Our bestsellers',
             subtitle: 'Discover top picks loved by customers.',
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
           _BestSellerCarousel(
             favoriteIds: favoriteIds,
             onToggleFavorite: onToggleFavorite,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           const _SectionHeader(
             title: 'Eco-friendly hijabs',
             subtitle: 'Premium modal fabrics for your style.',
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
           _ProductGrid(
             favoriteIds: favoriteIds,
             onToggleFavorite: onToggleFavorite,
@@ -402,12 +402,14 @@ class AccountPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 18),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.spaceBetween,
                   children: const [
-                    _AccountStat(label: 'Orders', value: '14'),
-                    _AccountStat(label: 'Wishlist', value: '3'),
-                    _AccountStat(label: 'Rewards', value: '45'),
+                    SizedBox(width: 100, child: _AccountStat(label: 'Orders', value: '14')),
+                    SizedBox(width: 100, child: _AccountStat(label: 'Wishlist', value: '3')),
+                    SizedBox(width: 100, child: _AccountStat(label: 'Rewards', value: '45')),
                   ],
                 ),
               ],
@@ -595,93 +597,102 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xffffcccc),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Elevating modesty and empowering the hijab',
-            style: Theme.of(context).textTheme.headlineLarge,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWide = constraints.maxWidth >= 700;
+        final imageWidth = isWide ? 130.0 : 110.0;
+        final imageHeight = isWide ? 200.0 : 170.0;
+
+        return Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0xffffcccc),
+            borderRadius: BorderRadius.circular(30),
           ),
-          const SizedBox(height: 12),
-          const Text(
-            'Wear it like you own your art.',
-            style: TextStyle(fontSize: 16, color: Colors.black87),
-          ),
-          const SizedBox(height: 20),
-          Row(
+          padding: const EdgeInsets.all(20),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    _BadgeLine(
-                      icon: Icons.diamond_outlined,
-                      label: 'Premium Quality',
-                    ),
-                    SizedBox(height: 12),
-                    _BadgeLine(
-                      icon: Icons.eco_outlined,
-                      label: 'Sustainable Choice',
-                    ),
-                    SizedBox(height: 12),
-                    _BadgeLine(
-                      icon: Icons.location_on_outlined,
-                      label: 'Made with Love in Amsterdam',
-                    ),
-                  ],
-                ),
+              Text(
+                'Elevating modesty and empowering the hijab',
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
-              const SizedBox(width: 16),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  width: 128,
-                  height: 190,
-                  decoration: BoxDecoration(
-                    color: const Color(0xffccccff),
-                    borderRadius: BorderRadius.circular(24),
+              const SizedBox(height: 14),
+              const Text(
+                'Wear it like you own your art.',
+                style: TextStyle(fontSize: 16, color: Colors.black87),
+              ),
+              const SizedBox(height: 18),
+              Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                children: [
+                  SizedBox(
+                    width: isWide
+                        ? constraints.maxWidth * 0.55
+                        : double.infinity,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        _BadgeLine(
+                          icon: Icons.diamond_outlined,
+                          label: 'Premium Quality',
+                        ),
+                        SizedBox(height: 14),
+                        _BadgeLine(
+                          icon: Icons.eco_outlined,
+                          label: 'Sustainable Choice',
+                        ),
+                        const SizedBox(height: 10),
+                        _BadgeLine(
+                          icon: Icons.location_on_outlined,
+                          label: 'Made with Love in Amsterdam',
+                        ),
+                      ],
+                    ),
                   ),
-                  child: const Center(
-                    child: Icon(Icons.image, size: 70, color: Colors.white70),
+                  Container(
+                    width: imageWidth,
+                    height: imageHeight,
+                    decoration: BoxDecoration(
+                      color: const Color(0xffccccff),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.image, size: 70, color: Colors.white70),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => ShopPage(
+                        favoriteIds: <String>{},
+                        onToggleFavorite: (_) {},
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xffccccff),
+                  foregroundColor: Colors.black87,
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                  child: Text(
+                    'SHOP NOW',
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 22),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => ShopPage(
-                    favoriteIds: <String>{},
-                    onToggleFavorite: (_) {},
-                  ),
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xffccccff),
-              foregroundColor: Colors.black87,
-            ),
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-              child: Text(
-                'SHOP NOW',
-                style: TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -718,26 +729,48 @@ class _FeatureHighlights extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: const [
-        _SmallFeatureCard(
-          icon: Icons.verified,
-          title: 'Comfort',
-          subtitle: 'Luxury fabrics',
-        ),
-        SizedBox(width: 10),
-        _SmallFeatureCard(
-          icon: Icons.eco_outlined,
-          title: 'Eco-friendly',
-          subtitle: 'Eco-friendly materials',
-        ),
-        SizedBox(width: 10),
-        _SmallFeatureCard(
-          icon: Icons.favorite_border,
-          title: 'Quality',
-          subtitle: 'Made with love',
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final spacing = 12.0;
+        final maxCardWidth = 220.0;
+        final minCardWidth = 150.0;
+        final cardWidth = ((constraints.maxWidth - spacing * 2) / 3).clamp(
+          minCardWidth,
+          maxCardWidth,
+        );
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: 12,
+          alignment: WrapAlignment.spaceBetween,
+          children: [
+            SizedBox(
+              width: cardWidth,
+              child: const _SmallFeatureCard(
+                icon: Icons.verified,
+                title: 'Comfort',
+                subtitle: 'Luxury fabrics',
+              ),
+            ),
+            SizedBox(
+              width: cardWidth,
+              child: const _SmallFeatureCard(
+                icon: Icons.eco_outlined,
+                title: 'Eco-friendly',
+                subtitle: 'Eco-friendly materials',
+              ),
+            ),
+            SizedBox(
+              width: cardWidth,
+              child: const _SmallFeatureCard(
+                icon: Icons.favorite_border,
+                title: 'Quality',
+                subtitle: 'Made with love',
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -755,30 +788,28 @@ class _SmallFeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xffccffcc),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, size: 26, color: Colors.black87),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xffccffcc),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 26, color: Colors.black87),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -816,20 +847,68 @@ class _BestSellerCarousel extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = productCatalog.take(3).toList();
 
-    return SizedBox(
-      height: 260,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: items
-            .map(
-              (product) => _ProductTile(
-                product: product,
-                isFavorite: favoriteIds.contains(product.id),
-                onToggleFavorite: onToggleFavorite,
-              ),
-            )
-            .toList(),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const horizontalSpacing = 12.0;
+        const minCardWidth = 180.0;
+        const maxCardWidth = 320.0;
+        final availableWidth = constraints.maxWidth;
+        final isWide = availableWidth >= 980;
+        final itemWidth = isWide
+            ? ((availableWidth - horizontalSpacing * 2) / 3)
+                .clamp(minCardWidth, maxCardWidth)
+            : availableWidth > 720
+                ? ((availableWidth - horizontalSpacing) / 2)
+                    .clamp(minCardWidth, maxCardWidth)
+                : availableWidth * 0.85;
+        final itemHeight = itemWidth * 1.05 + 70;
+
+        if (isWide) {
+          return SizedBox(
+            height: itemHeight,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: items
+                  .map(
+                    (product) => SizedBox(
+                      width: itemWidth,
+                      height: itemHeight,
+                      child: _ProductTile(
+                        product: product,
+                        isFavorite: favoriteIds.contains(product.id),
+                        onToggleFavorite: onToggleFavorite,
+                      ),
+                    ),
+                  )
+                  .expand((widget) => [widget, const SizedBox(width: horizontalSpacing)])
+                  .toList()
+                ..removeLast(),
+            ),
+          );
+        }
+
+        return SizedBox(
+          height: itemHeight,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: horizontalSpacing),
+            itemBuilder: (context, index) {
+              final product = items[index];
+              return SizedBox(
+                width: itemWidth,
+                height: itemHeight,
+                child: _ProductTile(
+                  product: product,
+                  isFavorite: favoriteIds.contains(product.id),
+                  onToggleFavorite: onToggleFavorite,
+                ),
+              );
+            },
+            separatorBuilder: (_, __) => const SizedBox(width: horizontalSpacing),
+            itemCount: items.length,
+          ),
+        );
+      },
     );
   }
 }
@@ -850,18 +929,55 @@ class _ProductGrid extends StatelessWidget {
         .take(4)
         .toList();
 
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: items
-          .map(
-            (product) => _ProductTile(
-              product: product,
-              isFavorite: favoriteIds.contains(product.id),
-              onToggleFavorite: onToggleFavorite,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const horizontalSpacing = 12.0;
+        const minCardWidth = 180.0;
+        const maxCardWidth = 320.0;
+        final availableWidth = constraints.maxWidth;
+        final crossAxisCount =
+            ((availableWidth + horizontalSpacing) /
+                    (minCardWidth + horizontalSpacing))
+                .toInt();
+        final effectiveCrossAxisCount = crossAxisCount < 1 ? 1 : crossAxisCount;
+        final itemWidth =
+            (availableWidth -
+                horizontalSpacing * (effectiveCrossAxisCount - 1)) /
+            effectiveCrossAxisCount;
+        final cardWidth = itemWidth.clamp(minCardWidth, maxCardWidth);
+        final cardHeight = cardWidth * 1.05 + 80;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: horizontalSpacing,
+              runSpacing: 16,
+              children: items
+                  .map(
+                    (product) => SizedBox(
+                      width: cardWidth,
+                      height: cardHeight,
+                      child: _ProductTile(
+                        product: product,
+                        isFavorite: favoriteIds.contains(product.id),
+                        onToggleFavorite: onToggleFavorite,
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
-          )
-          .toList(),
+            const SizedBox(height: 18),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${items.length} popular styles ready to shop',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -880,7 +996,7 @@ class _ShopGrid extends StatelessWidget {
       builder: (context, constraints) {
         const horizontalSpacing = 12.0;
         const minCardWidth = 220.0;
-        const maxCardWidth = 360.0;
+        const maxCardWidth = 320.0;
         final availableWidth = constraints.maxWidth;
         final crossAxisCount =
             ((availableWidth + horizontalSpacing) ~/
@@ -892,6 +1008,7 @@ class _ShopGrid extends StatelessWidget {
                 horizontalSpacing * (effectiveCrossAxisCount - 1)) /
             effectiveCrossAxisCount;
         final cardWidth = itemWidth.clamp(180.0, maxCardWidth);
+        final cardHeight = cardWidth * 1.05 + 80;
 
         return Wrap(
           spacing: horizontalSpacing,
@@ -900,6 +1017,7 @@ class _ShopGrid extends StatelessWidget {
               .map(
                 (product) => SizedBox(
                   width: cardWidth,
+                  height: cardHeight,
                   child: _ProductTile(
                     product: product,
                     isFavorite: favoriteIds.contains(product.id),
@@ -1063,28 +1181,38 @@ class _ProductTile extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Center(
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: const Center(
-                  child: Icon(Icons.image, size: 52, color: Colors.white70),
-                ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final size = (constraints.maxWidth * 0.45).clamp(90.0, 120.0);
+                  return Container(
+                    width: size,
+                    height: size,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.image, size: 52, color: Colors.white70),
+                    ),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 16),
-            Text(product.title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+            Text(
+              product.title,
+              style: Theme.of(context).textTheme.titleMedium,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
             Text(
               product.price,
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Row(
               children: List.generate(
                 product.rating,
@@ -1140,76 +1268,84 @@ class _FavoriteCard extends StatelessWidget {
               ),
             );
           },
-          child: Row(
-            children: [
-              Container(
-                width: 110,
-                height: 110,
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: product.color,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: const Center(
-                  child: Icon(Icons.image, size: 56, color: Colors.white70),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        product.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        product.price,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: List.generate(
-                          product.rating,
-                          (index) => const Icon(
-                            Icons.star,
-                            size: 16,
-                            color: Colors.amber,
-                          ),
-                        ),
-                      ),
-                    ],
+          child: LayoutBuilder(
+          builder: (context, constraints) {
+            final imageSize = (constraints.maxWidth * 0.28).clamp(84.0, 110.0);
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: imageSize,
+                  height: imageSize,
+                  margin: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: product.color,
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.image, size: 56, color: Colors.white70),
                   ),
                 ),
-              ),
-              InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () => onToggleFavorite(product.id),
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    transitionBuilder: (child, animation) {
-                      return ScaleTransition(scale: animation, child: child);
-                    },
-                    child: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      key: ValueKey<bool>(isFavorite),
-                      color: isFavorite ? Colors.redAccent : Colors.black38,
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          product.title,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          product.price,
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: List.generate(
+                            product.rating,
+                            (index) => const Icon(
+                              Icons.star,
+                              size: 16,
+                              color: Colors.amber,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: () => onToggleFavorite(product.id),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(scale: animation, child: child);
+                      },
+                      child: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        key: ValueKey<bool>(isFavorite),
+                        color: isFavorite ? Colors.redAccent : Colors.black38,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
         ),
       ),
     );
@@ -1288,20 +1424,25 @@ class ProductDetailsPage extends StatelessWidget {
                   right: 0,
                   top: 80,
                   child: Center(
-                    child: Container(
-                      width: 220,
-                      height: 220,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.35),
-                        borderRadius: BorderRadius.circular(32),
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.image,
-                          size: 120,
-                          color: Colors.white70,
-                        ),
-                      ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final imageSize = (constraints.maxWidth * 0.65).clamp(160.0, 220.0);
+                        return Container(
+                          width: imageSize,
+                          height: imageSize,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.35),
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                          child: const Center(
+                            child: Icon(
+                              Icons.image,
+                              size: 120,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
