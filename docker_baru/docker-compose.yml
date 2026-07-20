@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: rrhijab_db_baru       # Ini nama kontainer database barumu
+    restart: always
+    environment:
+      MYSQL_DATABASE: rrhijab_db          # Nama database di dalam kontainer baru
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3307:3306"                       # Port 3307 agar tidak tabrakan dengan yang lama
+    volumes:
+      - db_data_baru:/var/lib/mysql  
+      
+      
+       # Tempat penyimpanan data terpisah
+
+  cache:
+    image: redis:6-alpine
+    container_name: rrhijab_cache_baru    # Nama cache baru
+    restart: always
+    ports:
+      - "6380:6379"                       # Port 6380 agar tidak tabrakan
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: rrhijab_phpmyadmin_baru # phpMyAdmin baru
+    restart: always
+    links:
+      - db
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: rootpassword
+    ports:
+      - "8081:80"                         # Port 8081 agar tidak tabrakan dengan 8080 lama
+    depends_on:
+      - db
+
+volumes:
+  db_data_baru:                           # Folder penyimpanan baru
+
